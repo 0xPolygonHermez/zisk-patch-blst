@@ -7,6 +7,8 @@
 #include "point.h"
 #include "fields.h"
 
+extern void hint_blst_p2_affine_in_g2(const POINTonE2_affine *p);
+
 /*
  * y^2 = x^3 + A'*x + B', isogenous one
  */
@@ -430,10 +432,14 @@ static bool_t POINTonE2_in_G2(const POINTonE2 *P)
 }
 
 int blst_p2_in_g2(const POINTonE2 *p)
-{   return (int)POINTonE2_in_G2(p);   }
+{
+  return (int)POINTonE2_in_G2(p);
+}
 
 int blst_p2_affine_in_g2(const POINTonE2_affine *p)
 {
+    hint_blst_p2_affine_in_g2(p);
+
     POINTonE2 P;
 
     vec_copy(P.X, p->X, 2*sizeof(P.X));

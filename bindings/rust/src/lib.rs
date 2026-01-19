@@ -94,10 +94,10 @@ mod mt {
 include!("bindings.rs");
 
 #[cfg(all(target_os = "zkvm", target_vendor = "zisk"))]
-mod zisk;
-
-#[cfg(all(target_os = "zkvm", target_vendor = "zisk"))]
 include!("bindings_zisk.rs");
+
+mod zisk;
+mod zisk_hints;
 
 impl PartialEq for blst_p1 {
     fn eq(&self, other: &Self) -> bool {

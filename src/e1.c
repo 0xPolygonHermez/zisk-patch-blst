@@ -8,6 +8,12 @@
 #include "fields.h"
 #include "errors.h"
 
+// Extern zisk hint functions
+extern void hint_blst_p1_add_or_double_affine(POINTonE1 *out, const POINTonE1 *a, const POINTonE1_affine *b);
+extern void hint_blst_p1_uncompress(POINTonE1_affine *out, const unsigned char in[48]);
+extern void hint_blst_p1_affine_on_curve(const POINTonE1_affine *p);
+extern void hint_blst_p1_mult(POINTonE1 *out, const POINTonE1 *a, const byte *scalar, size_t nbits);
+
 /*
  * y^2 = x^3 + B
  */
@@ -111,8 +117,11 @@ static bool_t POINTonE1_affine_on_curve(const POINTonE1_affine *p)
     return vec_is_equal(XXX, YY, sizeof(XXX));
 }
 
-int blst_p1_affine_on_curve(const POINTonE1_affine *p)
-{   return (int)(POINTonE1_affine_on_curve(p) | vec_is_zero(p, sizeof(*p)));   }
+int blst_p1_affine_on_curve(const POINTonE1_affine *p) {
+    hint_blst_p1_affine_on_curve(p);
+
+    return (int)(POINTonE1_affine_on_curve(p) | vec_is_zero(p, sizeof(*p)));
+}
 
 static bool_t POINTonE1_on_curve(const POINTonE1 *p)
 {
@@ -290,8 +299,11 @@ static BLST_ERROR POINTonE1_Uncompress_Z(POINTonE1_affine *out,
                                                : BLST_SUCCESS;
 }
 
-BLST_ERROR blst_p1_uncompress(POINTonE1_affine *out, const unsigned char in[48])
-{   return POINTonE1_Uncompress_Z(out, in);   }
+BLST_ERROR blst_p1_uncompress(POINTonE1_affine *out, const unsigned char in[48]) {
+    hint_blst_p1_uncompress(out, in);
+
+    return POINTonE1_Uncompress_Z(out, in);
+}
 
 static BLST_ERROR POINTonE1_Deserialize_BE(POINTonE1_affine *out,
                                            const unsigned char in[96])
@@ -370,8 +382,11 @@ void blst_p1_add_affine(POINTonE1 *out, const POINTonE1 *a,
 {   POINTonE1_add_affine(out, a, b);   }
 
 void blst_p1_add_or_double_affine(POINTonE1 *out, const POINTonE1 *a,
-                                                  const POINTonE1_affine *b)
-{   POINTonE1_dadd_affine(out, a, b);   }
+                                                  const POINTonE1_affine *b) {
+    hint_blst_p1_add_or_double_affine(out, a, b);
+
+    POINTonE1_dadd_affine(out, a, b);
+}
 
 void blst_p1_double(POINTonE1 *out, const POINTonE1 *a)
 {   POINTonE1_double(out, a);   }
@@ -505,6 +520,8 @@ void blst_sign_pk2_in_g2(unsigned char out[96], POINTonE1_affine *sig,
 void blst_p1_mult(POINTonE1 *out, const POINTonE1 *a,
                                   const byte *scalar, size_t nbits)
 {
+    hint_blst_p1_mult(out, a, scalar, nbits);
+
     if (nbits < 176) {
         if (nbits)
             POINTonE1_mult_w4(out, a, scalar, nbits);

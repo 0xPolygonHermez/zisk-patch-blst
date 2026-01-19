@@ -8,6 +8,12 @@
 #include "fields.h"
 #include "errors.h"
 
+// Extern zisk hint functions
+extern void hint_blst_p2_add_or_double_affine(POINTonE2 *out, const POINTonE2 *a, const POINTonE2_affine *b);
+extern void hint_blst_p2_uncompress(POINTonE2_affine *out, const unsigned char in[96]);
+extern void hint_blst_p2_affine_on_curve(const POINTonE2_affine *p);
+extern void hint_blst_p2_mult(POINTonE2 *out, const POINTonE2 *a, const byte *scalar, size_t nbits);
+
 /*
  * y^2 = x^3 + B
  */
@@ -148,8 +154,11 @@ static bool_t POINTonE2_affine_on_curve(const POINTonE2_affine *p)
     return vec_is_equal(XXX, YY, sizeof(XXX));
 }
 
-int blst_p2_affine_on_curve(const POINTonE2_affine *p)
-{   return (int)(POINTonE2_affine_on_curve(p) | vec_is_zero(p, sizeof(*p)));   }
+int blst_p2_affine_on_curve(const POINTonE2_affine *p) {
+    hint_blst_p2_affine_on_curve(p);
+
+    return (int)(POINTonE2_affine_on_curve(p) | vec_is_zero(p, sizeof(*p)));
+}
 
 static bool_t POINTonE2_on_curve(const POINTonE2 *p)
 {
@@ -339,8 +348,11 @@ static BLST_ERROR POINTonE2_Uncompress_Z(POINTonE2_affine *out,
     return BLST_SUCCESS;
 }
 
-BLST_ERROR blst_p2_uncompress(POINTonE2_affine *out, const unsigned char in[96])
-{   return POINTonE2_Uncompress_Z(out, in);   }
+BLST_ERROR blst_p2_uncompress(POINTonE2_affine *out, const unsigned char in[96]) {
+    hint_blst_p2_uncompress(out, in);
+
+    return POINTonE2_Uncompress_Z(out, in);
+}
 
 static BLST_ERROR POINTonE2_Deserialize_BE(POINTonE2_affine *out,
                                            const unsigned char in[192])
@@ -430,7 +442,11 @@ void blst_p2_add_affine(POINTonE2 *out, const POINTonE2 *a,
 
 void blst_p2_add_or_double_affine(POINTonE2 *out, const POINTonE2 *a,
                                                   const POINTonE2_affine *b)
-{   POINTonE2_dadd_affine(out, a, b);   }
+{
+    hint_blst_p2_add_or_double_affine(out, a, b);
+
+    POINTonE2_dadd_affine(out, a, b);
+}
 
 void blst_p2_double(POINTonE2 *out, const POINTonE2 *a)
 {   POINTonE2_double(out, a);   }
@@ -579,6 +595,8 @@ void blst_sign_pk2_in_g1(unsigned char out[192], POINTonE2_affine *sig,
 void blst_p2_mult(POINTonE2 *out, const POINTonE2 *a,
                                   const byte *scalar, size_t nbits)
 {
+    hint_blst_p2_mult(out, a, scalar, nbits);
+    
     if (nbits < 144) {
         if (nbits)
             POINTonE2_mult_w4(out, a, scalar, nbits);

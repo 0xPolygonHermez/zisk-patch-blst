@@ -6,6 +6,9 @@
 
 #include "fields.h"
 
+// Extern zisk hint functions
+extern void hint_blst_fp12_mul(vec384fp12 ret, const vec384fp12 a, const vec384fp12 b);
+
 /*
  * Fp2  = Fp[u]  / (u^2 + 1)
  * Fp6  = Fp2[v] / (v^3 - u - 1)
@@ -741,8 +744,10 @@ void blst_fp12_sqr(vec384fp12 ret, const vec384fp12 a)
 void blst_fp12_cyclotomic_sqr(vec384fp12 ret, const vec384fp12 a)
 {   cyclotomic_sqr_fp12(ret, a);   }
 
-void blst_fp12_mul(vec384fp12 ret, const vec384fp12 a, const vec384fp12 b)
-{   mul_fp12(ret, a, b);   }
+void blst_fp12_mul(vec384fp12 ret, const vec384fp12 a, const vec384fp12 b) {
+    hint_blst_fp12_mul(ret, a, b);
+    mul_fp12(ret, a, b);
+}
 
 void blst_fp12_mul_by_xy00z0(vec384fp12 ret, const vec384fp12 a,
                                              const vec384fp6 xy00z0)

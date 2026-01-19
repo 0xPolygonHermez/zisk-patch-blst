@@ -7,6 +7,9 @@
 #include "point.h"
 #include "fields.h"
 
+// Extern zisk hint functions
+extern void hint_blst_p1_affine_in_g1(const POINTonE1_affine *p);
+
 /*
  * y^2 = x^3 + A'*x + B', isogenous one
  */
@@ -549,6 +552,8 @@ int blst_p1_in_g1(const POINTonE1 *p)
 
 int blst_p1_affine_in_g1(const POINTonE1_affine *p)
 {
+    hint_blst_p1_affine_in_g1(p);
+
     POINTonE1 P;
 
     vec_copy(P.X, p->X, 2*sizeof(P.X));

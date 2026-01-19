@@ -7,6 +7,9 @@
 #include "point.h"
 #include "fields.h"
 
+extern void hint_blst_miller_loop(vec384fp12 ret, const POINTonE2_affine *Q, const POINTonE1_affine *P);
+extern void hint_blst_final_exp(vec384fp12 ret, const vec384fp12 f);
+
 /*
  * Line evaluations from  https://eprint.iacr.org/2010/354.pdf
  * with a twist moving common expression to line_by_Px2.
@@ -403,9 +406,10 @@ static void final_exp(vec384fp12 ret, const vec384fp12 f)
     mul_fp12(ret, y1, y2);
 }
 
-void blst_miller_loop(vec384fp12 ret, const POINTonE2_affine *Q,
-                                      const POINTonE1_affine *P)
-{   miller_loop_n(ret, Q ? Q : (const POINTonE2_affine *)&BLS12_381_G2,
+void blst_miller_loop(vec384fp12 ret, const POINTonE2_affine *Q, const POINTonE1_affine *P) {
+    hint_blst_miller_loop(ret, Q, P);
+
+    miller_loop_n(ret, Q ? Q : (const POINTonE2_affine *)&BLS12_381_G2,
                        P ? P : (const POINTonE1_affine *)&BLS12_381_G1, 1);
 }
 
@@ -458,8 +462,11 @@ void blst_miller_loop_n(vec384fp12 out, const POINTonE2_affine *const Qs[],
     }
 }
 
-void blst_final_exp(vec384fp12 ret, const vec384fp12 f)
-{   final_exp(ret, f);   }
+void blst_final_exp(vec384fp12 ret, const vec384fp12 f) {
+    hint_blst_final_exp(ret, f);
+
+    final_exp(ret, f);
+}
 
 void blst_precompute_lines(vec384fp6 Qlines[68], const POINTonE2_affine *Q)
 {   precompute_lines(Qlines, Q);   }
