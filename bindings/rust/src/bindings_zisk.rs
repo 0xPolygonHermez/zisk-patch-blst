@@ -767,7 +767,7 @@ pub unsafe extern "C" fn blst_p1_affine_in_g1(p: *const blst_p1_affine) -> bool 
     }
     
     // Call Zisk implementation
-    zisk::is_on_subgroup_bls12_381_c(std_p.as_ptr())
+    zisk::is_on_curve_bls12_381_c(std_p.as_ptr()) && zisk::is_on_subgroup_bls12_381_c(std_p.as_ptr())
 }
 extern "C" {
     pub fn blst_p1_affine_is_equal(a: *const blst_p1_affine, b: *const blst_p1_affine) -> bool;
@@ -1092,7 +1092,7 @@ pub unsafe extern "C" fn blst_p2_affine_in_g2(p: *const blst_p2_affine) -> bool 
     }
     
     // Call Zisk implementation
-    zisk::is_on_subgroup_twist_bls12_381_c(std_p.as_ptr())
+    zisk::is_on_curve_twist_bls12_381_c(std_p.as_ptr()) && zisk::is_on_subgroup_twist_bls12_381_c(std_p.as_ptr())
 }
 extern "C" {
     pub fn blst_p2_affine_is_equal(a: *const blst_p2_affine, b: *const blst_p2_affine) -> bool;
