@@ -315,7 +315,7 @@ pub unsafe fn blst_p1_affine_in_g1(p: *const blst_p1_affine) -> bool {
     #[cfg(all(target_os = "zkvm", target_vendor = "zisk"))]
     {
         // Call Zisk implementation
-        zisk::is_on_subgroup_bls12_381_c(std_p.as_ptr())
+        zisk::is_on_curve_bls12_381_c(std_p.as_ptr()) && zisk::is_on_subgroup_bls12_381_c(std_p.as_ptr())
     }
 }
 
@@ -521,7 +521,7 @@ pub unsafe fn blst_p2_affine_in_g2(p: *const blst_p2_affine) -> bool {
     #[cfg(all(target_os = "zkvm", target_vendor = "zisk"))]
     {
         // Call Zisk implementation
-        zisk::is_on_subgroup_twist_bls12_381_c(std_p.as_ptr())
+        zisk::is_on_curve_twist_bls12_381_c(std_p.as_ptr()) && zisk::is_on_subgroup_twist_bls12_381_c(std_p.as_ptr())
     }
 }
 
