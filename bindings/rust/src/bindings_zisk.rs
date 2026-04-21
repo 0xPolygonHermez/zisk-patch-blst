@@ -415,7 +415,7 @@ pub unsafe extern "C" fn blst_fp12_mul(ret: *mut blst_fp12, a: *const blst_fp12,
 
     // Call Zisk implementation
     let mut std_ret: [u64; 72] = [0u64; 72];
-    zisk::mul_fp12_bls12_381_c(std_ret.as_mut_ptr(), std_a.as_ptr(), std_b.as_ptr());
+    zisk::mul_fp12_bls12_381_c(std_a.as_ptr(), std_b.as_ptr(), std_ret.as_mut_ptr());
 
     // Convert result back to Montgomery form
     let ret_fp = ret as *mut blst_fp;
@@ -599,10 +599,11 @@ pub unsafe extern "C" fn blst_p1_add_or_double_affine(
     }
 
     // Call Zisk implementation (add_bls12_381_c stores result in first argument)
-    let is_infinity = zisk::add_bls12_381_c(std_a.as_mut_ptr(), std_b.as_ptr());
+    let mut std_c: [u64; 12] = [0u64; 12];
+    let is_infinity = zisk::add_bls12_381_c(std_a.as_ptr(), std_b.as_ptr(), std_c.as_mut_ptr());
 
     // If result is infinity, set out to infinity (z = 0)
-    if is_infinity {
+    if is_infinity == 1 {
         *out = core::mem::zeroed();
         return;
     }
@@ -610,7 +611,7 @@ pub unsafe extern "C" fn blst_p1_add_or_double_affine(
     // Convert result from standard to Montgomery (affine)
     let mut ret_affine: blst_p1_affine = core::mem::zeroed();
     let ret_affine_fp = &mut ret_affine as *mut blst_p1_affine as *mut blst_fp;
-    let std_ret_fp = std_a.as_ptr() as *const blst_fp;
+    let std_ret_fp = std_c.as_ptr() as *const blst_fp;
     for i in 0..2 {
         blst_fp_to(ret_affine_fp.add(i), std_ret_fp.add(i));
     }
@@ -692,7 +693,7 @@ pub unsafe extern "C" fn blst_p1_mult(
     
     // Call Zisk implementation
     let mut std_ret: [u64; 12] = [0u64; 12];
-    zisk::scalar_mul_bls12_381_c(std_ret.as_mut_ptr(), std_p.as_ptr(), k.as_ptr());
+    zisk::scalar_mul_bls12_381_c(std_p.as_ptr(), k.as_ptr(), std_ret.as_mut_ptr());
     
     // Convert result from standard to Montgomery (affine)
     let mut ret_affine: blst_p1_affine = core::mem::zeroed();
@@ -747,7 +748,7 @@ pub unsafe extern "C" fn blst_p1_affine_on_curve(p: *const blst_p1_affine) -> bo
     }
     
     // Call Zisk implementation
-    zisk::is_on_curve_bls12_381_c(std_p.as_ptr())
+    zisk::is_on_curve_bls12_381_c(std_p.as_ptr()) == 1
 }
 // extern "C" {
 //     pub fn blst_p1_affine_in_g1(p: *const blst_p1_affine) -> bool;
@@ -767,7 +768,7 @@ pub unsafe extern "C" fn blst_p1_affine_in_g1(p: *const blst_p1_affine) -> bool 
     }
     
     // Call Zisk implementation
-    zisk::is_on_curve_bls12_381_c(std_p.as_ptr()) && zisk::is_on_subgroup_bls12_381_c(std_p.as_ptr())
+    (zisk::is_on_curve_bls12_381_c(std_p.as_ptr()) == 1) && (zisk::is_on_subgroup_bls12_381_c(std_p.as_ptr()) == 1)
 }
 extern "C" {
     pub fn blst_p1_affine_is_equal(a: *const blst_p1_affine, b: *const blst_p1_affine) -> bool;
@@ -925,10 +926,11 @@ pub unsafe extern "C" fn blst_p2_add_or_double_affine(
     }
 
     // Call Zisk implementation (add_twist_bls12_381_c stores result in first argument)
-    let is_infinity = zisk::add_twist_bls12_381_c(std_a.as_mut_ptr(), std_b.as_ptr());
+    let mut std_c: [u64; 24] = [0u64; 24];
+    let is_infinity = zisk::add_twist_bls12_381_c(std_a.as_ptr(), std_b.as_ptr(), std_c.as_mut_ptr());
 
     // If result is infinity, set out to infinity (z = 0)
-    if is_infinity {
+    if is_infinity == 1 {
         *out = core::mem::zeroed();
         return;
     }
@@ -936,7 +938,7 @@ pub unsafe extern "C" fn blst_p2_add_or_double_affine(
     // Convert result from standard to Montgomery (affine)
     let mut ret_affine: blst_p2_affine = core::mem::zeroed();
     let ret_affine_fp = &mut ret_affine as *mut blst_p2_affine as *mut blst_fp;
-    let std_ret_fp = std_a.as_ptr() as *const blst_fp;
+    let std_ret_fp = std_c.as_ptr() as *const blst_fp;
     for i in 0..4 {
         blst_fp_to(ret_affine_fp.add(i), std_ret_fp.add(i));
     }
@@ -1017,7 +1019,7 @@ pub unsafe extern "C" fn blst_p2_mult(
     
     // Call Zisk implementation
     let mut std_ret: [u64; 24] = [0u64; 24];
-    zisk::scalar_mul_twist_bls12_381_c(std_ret.as_mut_ptr(), std_p.as_ptr(), k.as_ptr());
+    zisk::scalar_mul_twist_bls12_381_c(std_p.as_ptr(), k.as_ptr(), std_ret.as_mut_ptr());
     
     // Convert result from standard to Montgomery (affine)
     let mut ret_affine: blst_p2_affine = core::mem::zeroed();
@@ -1072,7 +1074,7 @@ pub unsafe extern "C" fn blst_p2_affine_on_curve(p: *const blst_p2_affine) -> bo
     }
     
     // Call Zisk implementation
-    zisk::is_on_curve_twist_bls12_381_c(std_p.as_ptr())
+    zisk::is_on_curve_twist_bls12_381_c(std_p.as_ptr()) == 1
 }
 // extern "C" {
 //     pub fn blst_p2_affine_in_g2(p: *const blst_p2_affine) -> bool;
@@ -1092,7 +1094,7 @@ pub unsafe extern "C" fn blst_p2_affine_in_g2(p: *const blst_p2_affine) -> bool 
     }
     
     // Call Zisk implementation
-    zisk::is_on_curve_twist_bls12_381_c(std_p.as_ptr()) && zisk::is_on_subgroup_twist_bls12_381_c(std_p.as_ptr())
+    (zisk::is_on_curve_twist_bls12_381_c(std_p.as_ptr()) == 1) && (zisk::is_on_subgroup_twist_bls12_381_c(std_p.as_ptr()) == 1)
 }
 extern "C" {
     pub fn blst_p2_affine_is_equal(a: *const blst_p2_affine, b: *const blst_p2_affine) -> bool;
@@ -1294,7 +1296,7 @@ pub unsafe extern "C" fn blst_p1_uncompress(out: *mut blst_p1_affine, in_: *cons
     // Call Zisk implementation (returns 0=success, 1=infinity, 2=error)
     // Output is in standard form, 12 u64s (x, y) where x,y are Fp2 elements
     let mut std_point: [u64; 12] = [0u64; 12];
-    let result = zisk::decompress_bls12_381_c(std_point.as_mut_ptr(), in_);
+    let result = zisk::decompress_bls12_381_c(in_, std_point.as_mut_ptr());
     
     if result == 2 {
         return BLST_ERROR::BLST_BAD_ENCODING;
@@ -1337,7 +1339,7 @@ pub unsafe extern "C" fn blst_p2_uncompress(out: *mut blst_p2_affine, in_: *cons
     // Call Zisk implementation (returns 0=success, 1=infinity, 2=error)
     // Output is in standard form, 24 u64s (x, y) where x,y are Fp2 elements
     let mut std_point: [u64; 24] = [0u64; 24];
-    let result = zisk::decompress_twist_bls12_381_c(std_point.as_mut_ptr(), in_);
+    let result = zisk::decompress_twist_bls12_381_c(in_, std_point.as_mut_ptr());
     
     if result == 2 {
         return BLST_ERROR::BLST_BAD_ENCODING;
@@ -1419,7 +1421,7 @@ pub unsafe extern "C" fn blst_miller_loop(
 
     // Call Zisk implementation
     let mut std_ret: [u64; 72] = [0u64; 72];
-    zisk::miller_loop_bls12_381_c(std_ret.as_mut_ptr(), std_q.as_ptr(), std_p.as_ptr());
+    zisk::miller_loop_bls12_381_c(std_p.as_ptr(), std_q.as_ptr(), std_ret.as_mut_ptr());
 
     // Convert result back to Montgomery form
     let ret_fp = ret as *mut blst_fp;
@@ -1457,11 +1459,12 @@ pub unsafe extern "C" fn blst_final_exp(ret: *mut blst_fp12, f: *const blst_fp12
     }
 
     // Call ZisK implementation
-    zisk::final_exp_bls12_381_c(std_input.as_mut_ptr());
+    let mut std_output: [u64; 72] = [0u64; 72];
+    zisk::final_exp_bls12_381_c(std_input.as_ptr(), std_output.as_mut_ptr());
 
     // Convert result back to Montgomery form
     let ret_fp = ret as *mut blst_fp;
-    let std_fp = std_input.as_ptr() as *const blst_fp;
+    let std_fp = std_output.as_ptr() as *const blst_fp;
     
     for i in 0..12 {
         blst_fp_to(ret_fp.add(i), std_fp.add(i));
