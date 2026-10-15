@@ -90,7 +90,14 @@ mod mt {
     }
 }
 
+#[cfg(not(all(target_os = "zkvm", target_vendor = "zisk")))]
 include!("bindings.rs");
+
+#[cfg(all(target_os = "zkvm", target_vendor = "zisk"))]
+mod zisk;
+
+#[cfg(all(target_os = "zkvm", target_vendor = "zisk"))]
+include!("bindings_zisk.rs");
 
 impl PartialEq for blst_p1 {
     fn eq(&self, other: &Self) -> bool {

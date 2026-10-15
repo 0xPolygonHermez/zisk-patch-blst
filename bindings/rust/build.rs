@@ -48,9 +48,13 @@ fn main() {
         || target_os.eq("uefi")
         || env::var("BLST_TEST_NO_STD").is_ok();
 
+    let target_zisk = target_os.eq("zkvm")
+        && env::var("CARGO_CFG_TARGET_VENDOR").as_deref() == Ok("zisk");
+
     if !target_no_std {
         println!("cargo:rustc-cfg=feature=\"std\"");
-        if target_arch.eq("wasm32") || target_os.eq("unknown") {
+        // ZisK guests are single-threaded.
+        if target_arch.eq("wasm32") || target_os.eq("unknown") || target_zisk {
             println!("cargo:rustc-cfg=feature=\"no-threads\"");
         }
     }
@@ -140,6 +144,22 @@ fn main() {
     }
 
     let mut cc = cc::Build::new();
+
+    // ZisK: only part of blst is replaced by the Rust bindings in bindings_zisk.rs, so the C
+    // library is still built for the zkVM. ZisK places code and data above 2 GiB and does not
+    // initialize a GOT, so build position-dependent code with the medany code model, using the
+    // RISC-V cross compiler unless one was chosen for this target explicitly.
+    if target_zisk {
+        let target = env::var("TARGET").unwrap();
+        let cc_chosen = env::var(format!("CC_{}", target)).is_ok()
+            || env::var(format!("CC_{}", target.replace('-', "_"))).is_ok()
+            || env::var("TARGET_CC").is_ok();
+        if !cc_chosen {
+            cc.compiler("riscv64-unknown-elf-gcc");
+        }
+        cc.pic(false);
+        cc.flag("-mcmodel=medany");
+    }
 
     let c_src_dir = blst_base_dir.join("src");
     println!("cargo:rerun-if-changed={}", c_src_dir.display());
